@@ -125,7 +125,7 @@ var tests = {
 describe('When shifting asynchronous paradigms', function() {
 
   // Global testing
-  ['classical', 'baroque'].forEach(function(from) {
+  ['classical', 'baroque', 'modern'].forEach(function(from) {
     colback.paradigms.forEach(function(to) {
       if (from === to)
         return;

@@ -173,6 +173,45 @@ function make(fn, scope, from, to) {
           });
         };
       }
+    },
+
+    // From modern
+    modern: {
+      classical: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest.concat(function(err, result) {
+            if (!err)
+              a.callback(result);
+            else
+              a.errback(err);
+          }));
+        };
+      },
+      baroque: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest.concat(function(err, result) {
+            if (!err)
+              a.callback(result);
+            else
+              a.errback(err);
+          }));
+        };
+      },
+      promise: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          return colback.defaultPromise(function(resolve, reject) {
+            fn.apply(scope, a.rest.concat(function(err, result) {
+              if (!err)
+                resolve(result);
+              else
+                reject(err);
+            }));
+          });
+        };
+      }
     }
   };
 
