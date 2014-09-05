@@ -5,12 +5,14 @@
  * Author: Yomguithereal
  */
 
+// Dependencies
+var Promise = require('promise');
+
 // Constants
 var PARADIGMS = [
   'classical',
   'baroque',
   'modern',
-  'incomplete',
   'promise'
 ];
 
@@ -43,8 +45,24 @@ function colback(fn, scope) {
   };
 }
 
+// Standard promise engine
+colback.defaultPromise = function(fn) {
+  return new Promise(fn);
+};
+
 // Arguments signatures
 var signatures = {
+  classical: function(args) {
+    var a = atoa(args),
+        l = a.length;
+
+    // TODO: detect loners
+    return {
+      callback: a[l - 2],
+      errback: a[l - 1],
+      rest: l > 2 ? a.slice(0, -2) : []
+    };
+  },
   baroque: function(args) {
     var a = atoa(args),
         l = a.length;
@@ -63,6 +81,11 @@ var signatures = {
     return {
       callback: a[l - 1],
       rest: l > 1 ? a.slice(0, -1) : []
+    };
+  },
+  promise: function(args) {
+    return {
+      rest: atoa(args)
     };
   }
 };
@@ -94,6 +117,61 @@ function make(fn, scope, from, to) {
             }
           ]));
         };
+      },
+      promise: function(signature) {
+        return function() {
+          var a = signature(arguments);
+
+          return colback.defaultPromise(function(resolve, reject) {
+            fn.apply(scope, a.rest.concat([
+              function(result) {
+                resolve(result);
+              },
+              function(err) {
+                reject(err);
+              }
+            ]));
+          });
+        };
+      }
+    },
+
+    // From baroque
+    baroque: {
+      classical: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest.concat([a.errback, a.callback]));
+        };
+      },
+      modern: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest.concat([
+            function(err) {
+              a.callback(err || true);
+            },
+            function(result) {
+              a.callback(null, result);
+            }
+          ]));
+        };
+      },
+      promise: function(signature) {
+        return function() {
+          var a = signature(arguments);
+
+          return colback.defaultPromise(function(resolve, reject) {
+            fn.apply(scope, a.rest.concat([
+              function(err) {
+                reject(err);
+              },
+              function(result) {
+                resolve(result);
+              }
+            ]));
+          });
+        };
       }
     }
   };
@@ -102,7 +180,9 @@ function make(fn, scope, from, to) {
 }
 
 // Overloading
-colback.paradigms = PARADIGMS;
+Object.defineProperty(colback, 'paradigms', {
+  value: PARADIGMS
+});
 
 // Exporting
 module.exports = colback;

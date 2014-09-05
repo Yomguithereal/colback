@@ -6,23 +6,116 @@
  */
 var assert = require('assert'),
     async = require('async'),
+    Promise = require('promise'),
     colback = require('../index.js');
 
 // TODO: add scoping tests
 // TODO: add loner tests
 // TODO: check exceptions on wrong paradigms
+// TODO: test with another promise engine
 
 /**
  * Utilities
  */
 var noop = function() {};
 
+// Input functions
 var functions = {
   classical: function(successful, callback, errback) {
     if (successful)
       callback('success');
     else
       errback('failure');
+  },
+  baroque: function(successful, errback, callback) {
+    if (successful)
+      callback('success');
+    else
+      errback('failure');
+  },
+  modern: function(successful, callback) {
+    if (successful)
+      callback(null, 'success');
+    else
+      callback('failure');
+  },
+  promise: function(successful) {
+    return new Promise(function(resolve, reject) {
+      if (successful)
+        resolve('success');
+      else
+        resolve('failure');
+    });
+  }
+};
+
+// Output testing
+var tests = {
+  classical: function(fn, done) {
+    async.parallel({
+      success: function(next) {
+        fn(true, function(result) {
+          assert.equal(result, 'success');
+          next();
+        }, noop);
+      },
+      fail: function(next) {
+        fn(false, noop, function(error) {
+          assert.equal(error, 'failure');
+          next();
+        });
+      }
+    }, done);
+  },
+  baroque: function(fn, done) {
+    async.parallel({
+      success: function(next) {
+        fn(true, noop, function(result) {
+          assert.equal(result, 'success');
+          next();
+        });
+      },
+      fail: function(next) {
+        fn(false, function(error) {
+          assert.equal(error, 'failure');
+          next();
+        }, noop);
+      }
+    }, done);
+  },
+  modern: function(fn, done) {
+    async.parallel({
+      success: function(next) {
+        fn(true, function(err, result) {
+          assert.equal(result, 'success');
+          next();
+        });
+      },
+      fail: function(next) {
+        fn(false, function(err) {
+          assert.equal(err, 'failure');
+          next();
+        });
+      }
+    }, done);
+  },
+  promise: function(fn, done) {
+    async.parallel({
+      success: function(next) {
+        fn(true)
+          .then(function(result) {
+            assert.equal(result, 'success');
+            next();
+          });
+      },
+      fail: function(next) {
+        fn(false)
+          .then(noop, function(err) {
+            assert.equal(err, 'failure');
+            next();
+          });
+      }
+    }, done);
   }
 };
 
@@ -31,48 +124,20 @@ var functions = {
  */
 describe('When shifting asynchronous paradigms', function() {
 
-  // Tests
-  it('a function can go from classical to baroque', function(done) {
+  // Global testing
+  ['classical', 'baroque'].forEach(function(from) {
+    colback.paradigms.forEach(function(to) {
+      if (from === to)
+        return;
 
-    // Shifting function
-    var baroque = colback(functions.classical).from('classical').to('baroque');
+      it('a function can go from ' + from + ' to ' + to, function(done) {
 
-    // Testing success and failure
-    async.parallel({
-      success: function(next) {
-        baroque(true, noop, function(result) {
-          assert.equal(result, 'success');
-          next();
-        });
-      },
-      fail: function(next) {
-        baroque(false, function(error) {
-          assert.equal(error, 'failure');
-          next();
-        }, noop);
-      }
-    }, done);
-  });
+        // Shifting function
+        var fn = colback(functions[from]).from(from).to(to);
 
-  it('a function can go from classical to modern', function(done) {
-
-    // Shifting function
-    var modern = colback(functions.classical).from('classical').to('modern');
-
-    // Testing success and failure
-    async.parallel({
-      success: function(next) {
-        modern(true, function(err, result) {
-          assert.equal(result, 'success');
-          next();
-        });
-      },
-      fail: function(next) {
-        modern(false, function(err) {
-          assert.equal(err, 'failure');
-          next();
-        });
-      }
-    }, done);
+        // Testing
+        tests[to](fn, done);
+      });
+    });
   });
 });
