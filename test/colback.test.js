@@ -1,6 +1,6 @@
 /**
- * Colback API Unit tests
- * =======================
+ * Colback Unit tests
+ * ===================
  *
  * Author: Yomguithereal
  */

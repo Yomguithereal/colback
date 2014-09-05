@@ -16,6 +16,8 @@ var PARADIGMS = [
   'promise'
 ];
 
+var VERSION = '0.0.1';
+
 // Helpers
 function noop() {}
 
@@ -325,6 +327,10 @@ function make(fn, scope, from, to, engine) {
 // Overloading
 Object.defineProperty(colback, 'paradigms', {
   value: PARADIGMS
+});
+
+Object.defineProperty(colback, 'version', {
+  value: VERSION
 });
 
 // Exporting
