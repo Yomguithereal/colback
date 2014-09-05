@@ -10,9 +10,8 @@ var assert = require('assert'),
     colback = require('../index.js');
 
 // TODO: add the deferred paradigm
-// TODO: clearly state the difference between deferred and promises
 // TODO: test with another promise engine
-// TODO: document the question of event based API: not possible --> adhoc
+
 
 /**
  * Utilities

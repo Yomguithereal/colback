@@ -15,7 +15,8 @@ function capitalize(name) {
 }
 
 // Constants
-var DEFAULT_PARADIGM = 'promise';
+var DEFAULT_PARADIGM = 'promise',
+    DEFAULT_TIMEOUT = 2000;
 
 // Internals
 var name = 0;
@@ -27,12 +28,13 @@ function Messenger(params) {
   // Properties and defaults
   params = params || {};
   this.name = params.name || '' + (name++);
-  this.timeout = params.timeout || 2000;
+  this.timeout = params.timeout || DEFAULT_TIMEOUT;
   this.paradigm = params.paradigm || DEFAULT_PARADIGM;
 
   var emitter = params.emitter,
       receptor = params.receptor,
-      scope = params.scope || this;
+      scope = params.scope || this,
+      shot = false;
 
   // Checking
   if (typeof receptor !== 'function' ||
@@ -76,8 +78,9 @@ function Messenger(params) {
   }
 
   // Replying
-  function reply(id, body) {
+  function reply(id, replyTo, body) {
     emitter.call(scope, {
+      replyTo: replyTo,
       messenger: self.name,
       id: id,
       body: body
@@ -103,24 +106,30 @@ function Messenger(params) {
       delete listeners[header];
   }
 
+  // Is the messenger shot?
+  function isShot() {
+    if (shot)
+      throw Error('colback.messenger: this messenger has been shot.');
+  }
+
   // Receiving message
   receptor.call(scope, function(message) {
     message = message || {};
 
     // Ensuring message is correct
-    if (!message.id || !message.messenger)
+    if (typeof message.id !== 'number' || !message.messenger)
       return;
 
     // If a listener is configured, fire callback
     if (message.header in listeners)
       listeners[message.header].forEach(function(l) {
         l.call(self, message.body, function(data) {
-          reply(message.id, data);
+          reply(message.id, message.messenger, data);
         })
       });
 
     // Ensuring message belongs to messenger
-    if (message.messenger !== self.name)
+    if (message.replyTo !== self.name)
       return;
 
     // Ensuring such a call was passed
@@ -137,15 +146,37 @@ function Messenger(params) {
 
   // Main methods
   this.request = function(header, data, timeoutOverride) {
+    isShot();
     return send(header, data, timeoutOverride);
   };
 
   this.on = function(header, fn) {
+    isShot();
     bind(header, fn);
   };
 
   this.off = function(header, fn) {
+    isShot();
     unbind(header, fn);
+  };
+
+  this.shoot = function() {
+    if (shot)
+      throw Error('colback.messenger: this messenger has already been shot.' +
+                  ' \'Twould be a bit overkill to shoot him again, no?');
+
+    // Deleting listeners
+    delete listeners;
+
+    // Terminating calls
+    for (var k in calls) {
+      calls[k].deferred.reject('shot');
+      clearTimeout(call[k].timeout);
+    };
+
+    delete calls;
+
+    shot = true;
   };
 
   // Applying paradigm
