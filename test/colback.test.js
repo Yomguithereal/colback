@@ -11,7 +11,6 @@ var assert = require('assert'),
 
 // TODO: add the deferred paradigm
 // TODO: test with another promise engine
-// TODO: add test when given arg is not correct
 
 /**
  * Utilities
@@ -161,6 +160,12 @@ describe('When using the API', function() {
 
     assert.doesNotThrow(function() {
       colback(noop).from('classical').to('baroque');
+    }, Error);
+  });
+
+  it('should throw an exception when the argument passed to the main function is invalid.', function() {
+    assert.throws(function() {
+      colback(45).from('classical').to('baroque');
     }, Error);
   });
 
