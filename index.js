@@ -17,11 +17,17 @@ var PARADIGMS = [
 ];
 
 // Helpers
+function noop() {}
+
 function atoa(a) {
   return Array.prototype.slice.call(a, 0);
 };
 
-function noop() {}
+function isPlainObject(v) {
+  return v instanceof Object &&
+         !(v instanceof Array) &&
+         !(v instanceof Function);
+}
 
 function checkParadigm(paradigm) {
   if (!~PARADIGMS.indexOf(paradigm))
@@ -30,15 +36,36 @@ function checkParadigm(paradigm) {
 
 // Main function
 function colback(fn, scope) {
+
+  // Checking
+  if (!isPlainObject(fn) && typeof fn !== 'function')
+    throw Error('colback: first argument must be a function or an object.');
+
+  // Process
   return {
     from: function(fromParadigm) {
       checkParadigm(fromParadigm);
 
       // Where do we want to go?
       return {
-        to: function(toParadigm) {
+        to: function(toParadigm, engine) {
           checkParadigm(toParadigm);
-          return make(fn, scope || null, fromParadigm, toParadigm);
+
+          if (typeof fn === 'function') {
+            return make(fn, scope || null, fromParadigm, toParadigm, engine);
+          }
+          else {
+            var original = fn,
+                shifted = {},
+                k;
+
+            for (k in original) {
+              if (typeof original[k] === 'function')
+                shifted[k] = make(original[k], scope || null, fromParadigm, toParadigm, engine);
+            }
+
+            return shifted;
+          }
         }
       };
     }
@@ -91,7 +118,8 @@ var signatures = {
 };
 
 // Forge
-function make(fn, scope, from, to) {
+function make(fn, scope, from, to, engine) {
+  engine = colback.defaultPromise || engine;
 
   // The idea here is always to analyze the target paradigm argument signature
   // to then apply it in a correct fashion to the original function.
@@ -122,7 +150,7 @@ function make(fn, scope, from, to) {
         return function() {
           var a = signature(arguments);
 
-          return colback.defaultPromise(function(resolve, reject) {
+          return engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat([
               function(result) {
                 resolve(result);
@@ -161,7 +189,7 @@ function make(fn, scope, from, to) {
         return function() {
           var a = signature(arguments);
 
-          return colback.defaultPromise(function(resolve, reject) {
+          return engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat([
               function(err) {
                 reject(err);
@@ -202,7 +230,7 @@ function make(fn, scope, from, to) {
       promise: function(signature) {
         return function() {
           var a = signature(arguments);
-          return colback.defaultPromise(function(resolve, reject) {
+          return engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat(function(err, result) {
               if (!err)
                 resolve(result);
@@ -261,6 +289,8 @@ function make(fn, scope, from, to) {
     }
   };
 
+  if (from === to)
+    throw Error('colback: trying to shift a function to the same paradigm.');
   return cases[from][to](signatures[to]);
 }
 

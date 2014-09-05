@@ -9,11 +9,10 @@ var assert = require('assert'),
     Promise = require('promise'),
     colback = require('../index.js');
 
-// TODO: add scoping tests
 // TODO: add loner tests
-// TODO: check exceptions on wrong paradigms
+// TODO: add the deferred paradigm
 // TODO: test with another promise engine
-// TODO: polymorphism when passing object of functions rather than lone function
+// TODO: add test when given arg is not correct
 
 /**
  * Utilities
@@ -126,12 +125,12 @@ var tests = {
 describe('When shifting asynchronous paradigms', function() {
 
   // Global testing
-  ['classical', 'baroque', 'modern', 'promise'].forEach(function(from) {
+  colback.paradigms.forEach(function(from) {
     colback.paradigms.forEach(function(to) {
       if (from === to)
         return;
 
-      it('a function can go from ' + from + ' to ' + to, function(done) {
+      it('a function can go from ' + from + ' to ' + to + '.', function(done) {
 
         // Shifting function
         var fn = colback(functions[from]).from(from).to(to);
@@ -140,5 +139,103 @@ describe('When shifting asynchronous paradigms', function() {
         tests[to](fn, done);
       });
     });
+  });
+});
+
+/**
+ * API Candy
+ */
+describe('When using the API', function() {
+
+  it('should throw an exception when a requested paradigm does not exists.', function() {
+    assert.throws(function() {
+      colback(noop).from('unknown').to('classical');
+    }, Error);
+
+    assert.throws(function() {
+      colback(noop).from('classical').to('unknown');
+    }, Error);
+
+    assert.throws(function() {
+      colback(noop).from('unknown').to('unknown');
+    }, Error);
+
+    assert.doesNotThrow(function() {
+      colback(noop).from('classical').to('baroque');
+    }, Error);
+  });
+
+  it('should throw an exception when one is trying to shift a function to the same paradigm.', function() {
+    assert.throws(function() {
+      colback(noop).from('classical').to('classical');
+    }, Error);
+  });
+
+  it('should use the specified scope.', function(done) {
+
+    // Dummy class for the purpose of the test
+    function Lib() {
+      this.greeting = 'Hello!';
+      this.greet = function(callback) {
+        callback(null, this.greeting);
+      };
+    }
+
+    // Instantiation
+    var lib = new Lib();
+
+    // Shifting the instance's method
+    var shiftedGreet = colback(lib.greet, lib).from('modern').to('promise');
+
+    // Testing
+    async.parallel({
+      normal: function(next) {
+        lib.greet(function(err, greeting) {
+          assert.equal(greeting, 'Hello!');
+          next();
+        });
+      },
+      shifted: function(next) {
+        shiftedGreet().then(function(greeting) {
+          assert.equal(greeting, 'Hello!');
+          next();
+        });
+      }
+    }, done);
+  });
+
+  it('should be able to return an object of shifted functions.', function(done) {
+
+    // Original functions
+    var original = {
+      one: function(callback) {
+        callback(null, 'success one');
+      },
+      two: function(callback) {
+        callback(null, 'success two');
+      }
+    };
+
+    // Shifting them
+    var shifted = colback(original).from('modern').to('promise');
+
+    // Correct keys?
+    assert.deepEqual(Object.keys(shifted).join(' '), 'one two');
+
+    // Correct functions?
+    async.parallel({
+      one: function(next) {
+        shifted.one().then(function(result) {
+          assert.equal(result, 'success one');
+          next();
+        });
+      },
+      two: function(next) {
+        shifted.two().then(function(result) {
+          assert.equal(result, 'success two');
+          next();
+        });
+      }
+    }, done);
   });
 });
