@@ -9,7 +9,6 @@ var assert = require('assert'),
     Promise = require('promise'),
     colback = require('../index.js');
 
-// TODO: add loner tests
 // TODO: add the deferred paradigm
 // TODO: test with another promise engine
 // TODO: add test when given arg is not correct
@@ -233,6 +232,50 @@ describe('When using the API', function() {
       two: function(next) {
         shifted.two().then(function(result) {
           assert.equal(result, 'success two');
+          next();
+        });
+      }
+    }, done);
+  });
+
+  it('should work with some strangely shaped classical functions.', function(done) {
+
+    // Original functions
+    var original = {
+      loner: function(callback) {
+        callback('success');
+      },
+      oneArg: function(key, callback) {
+        callback('success');
+      },
+      twoArgs: function(key1, key2, callback) {
+        callback('success');
+      }
+    };
+
+    // Shifting them
+    var shifted = colback(original).from('classical').to('modern');
+
+    // Testing
+    async.parallel({
+      loner: function(next) {
+        shifted.loner(function(err, result) {
+          assert.equal(err, null);
+          assert.equal(result, 'success');
+          next();
+        });
+      },
+      oneArg: function(next) {
+        shifted.oneArg('key', function(err, result) {
+          assert.equal(err, null);
+          assert.equal(result, 'success');
+          next();
+        });
+      },
+      twoArgs: function(next) {
+        shifted.twoArgs('key1', 'key2', function(err, result) {
+          assert.equal(err, null);
+          assert.equal(result, 'success');
           next();
         });
       }

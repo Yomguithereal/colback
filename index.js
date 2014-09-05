@@ -81,25 +81,53 @@ colback.defaultPromise = function(fn) {
 var signatures = {
   classical: function(args) {
     var a = atoa(args),
-        l = a.length;
+        cbl = 0,
+        l = a.length,
+        i;
 
-    // TODO: detect loners
-    return {
-      callback: a[l - 2],
-      errback: a[l - 1],
-      rest: l > 2 ? a.slice(0, -2) : []
-    };
+    // Counting number of callbacks in reverse order up to two
+    for (i = l - 1; i >= 0; i--) {
+      if (typeof a[i] === 'function' && cbl < 2)
+        cbl++;
+    }
+
+    if (cbl === 1)
+      return {
+        callback: a[l - 1],
+        errback: noop,
+        rest: l > 1 ? a.slice(0, -1) : []
+      };
+    else
+      return {
+        callback: a[l - 2],
+        errback: a[l - 1],
+        rest: l > 2 ? a.slice(0, -2) : []
+      };
   },
   baroque: function(args) {
     var a = atoa(args),
-        l = a.length;
+        cbl = 0,
+        l = a.length,
+        i;
 
-    // TODO: detect loners
-    return {
-      callback: a[l - 1],
-      errback: a[l - 2],
-      rest: l > 2 ? a.slice(0, -2) : []
-    };
+    // Counting number of callbacks in reverse order up to two
+    for (i = l - 1; i >= 0; i--) {
+      if (typeof a[i] === 'function' && cbl < 2)
+        cbl++;
+    }
+
+    if (cbl === 1)
+      return {
+        errback: a[l - 1],
+        callback: noop,
+        rest: l > 1 ? a.slice(0, -1) : []
+      };
+    else
+      return {
+        errback: a[l - 2],
+        callback: a[l - 1],
+        rest: l > 2 ? a.slice(0, -2) : []
+      };
   },
   modern: function(args) {
     var a = atoa(args),
