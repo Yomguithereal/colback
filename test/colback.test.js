@@ -13,6 +13,7 @@ var assert = require('assert'),
 // TODO: add loner tests
 // TODO: check exceptions on wrong paradigms
 // TODO: test with another promise engine
+// TODO: polymorphism when passing object of functions rather than lone function
 
 /**
  * Utilities
@@ -44,7 +45,7 @@ var functions = {
       if (successful)
         resolve('success');
       else
-        resolve('failure');
+        reject('failure');
     });
   }
 };
@@ -125,7 +126,7 @@ var tests = {
 describe('When shifting asynchronous paradigms', function() {
 
   // Global testing
-  ['classical', 'baroque', 'modern'].forEach(function(from) {
+  ['classical', 'baroque', 'modern', 'promise'].forEach(function(from) {
     colback.paradigms.forEach(function(to) {
       if (from === to)
         return;

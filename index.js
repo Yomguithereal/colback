@@ -212,6 +212,52 @@ function make(fn, scope, from, to) {
           });
         };
       }
+    },
+
+    // From promise
+    promise: {
+      classical: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(
+              function(result) {
+                a.callback(result);
+              },
+              function(err) {
+                a.errback(err);
+              }
+            );
+        };
+      },
+      baroque: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(
+              function(result) {
+                a.callback(result);
+              },
+              function(err) {
+                a.errback(err);
+              }
+            );
+        };
+      },
+      modern: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(
+              function(result) {
+                a.callback(null, result);
+              },
+              function(err) {
+                a.callback(err || true);
+              }
+            );
+        };
+      }
     }
   };
 
