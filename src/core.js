@@ -6,14 +6,16 @@
  */
 
 // Dependencies
-var Promise = require('promise');
+var Promise = require('promise'),
+    Q = require('q');
 
 // Constants
 var PARADIGMS = [
   'classical',
   'baroque',
   'modern',
-  'promise'
+  'promise',
+  'deferred'
 ];
 
 // Helpers
@@ -72,10 +74,9 @@ function colback(fn, scope) {
   };
 }
 
-// Standard promise engine
-colback.defaultPromise = function(fn) {
-  return new Promise(fn);
-};
+// Standard engines
+colback.promise = Promise;
+colback.deferred = Q.defer;
 
 // Arguments signatures
 var signatures = {
@@ -142,12 +143,17 @@ var signatures = {
     return {
       rest: atoa(args)
     };
+  },
+  deferred: function(args) {
+    return {
+      rest: atoa(args)
+    };
   }
 };
 
 // Forge
 function make(fn, scope, from, to, engine) {
-  engine = colback.defaultPromise || engine;
+  engine = (to === 'promise' ? colback.promise : colback.deferred) || engine;
 
   // The idea here is always to analyze the target paradigm argument signature
   // to then apply it in a correct fashion to the original function.
@@ -178,7 +184,7 @@ function make(fn, scope, from, to, engine) {
         return function() {
           var a = signature(arguments);
 
-          return engine(function(resolve, reject) {
+          return new engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat([
               function(result) {
                 resolve(result);
@@ -188,6 +194,23 @@ function make(fn, scope, from, to, engine) {
               }
             ]));
           });
+        };
+      },
+      deferred: function(signature) {
+        return function() {
+          var a = signature(arguments),
+              deferred = colback.deferred();
+
+          fn.apply(scope, a.rest.concat([
+            function(result) {
+              deferred.resolve(result);
+            },
+            function(err) {
+              deferred.reject(err);
+            }
+          ]));
+
+          return deferred.promise;
         };
       }
     },
@@ -217,7 +240,7 @@ function make(fn, scope, from, to, engine) {
         return function() {
           var a = signature(arguments);
 
-          return engine(function(resolve, reject) {
+          return new engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat([
               function(err) {
                 reject(err);
@@ -227,6 +250,23 @@ function make(fn, scope, from, to, engine) {
               }
             ]));
           });
+        };
+      },
+      deferred: function(signature) {
+        return function() {
+          var a = signature(arguments),
+              deferred = colback.deferred();
+
+          fn.apply(scope, a.rest.concat([
+            function(err) {
+              deferred.reject(err);
+            },
+            function(result) {
+              deferred.resolve(result);
+            }
+          ]));
+
+          return deferred.promise;
         };
       }
     },
@@ -258,7 +298,7 @@ function make(fn, scope, from, to, engine) {
       promise: function(signature) {
         return function() {
           var a = signature(arguments);
-          return engine(function(resolve, reject) {
+          return new engine(function(resolve, reject) {
             fn.apply(scope, a.rest.concat(function(err, result) {
               if (!err)
                 resolve(result);
@@ -266,6 +306,21 @@ function make(fn, scope, from, to, engine) {
                 reject(err);
             }));
           });
+        };
+      },
+      deferred: function(signature) {
+        return function() {
+          var a = signature(arguments),
+              deferred = colback.deferred();
+
+          fn.apply(scope, a.rest.concat(function(err, result) {
+            if (!err)
+              deferred.resolve(result);
+            else
+              deferred.reject(err);
+          }));
+
+          return deferred.promise;
         };
       }
     },
@@ -276,28 +331,14 @@ function make(fn, scope, from, to, engine) {
         return function() {
           var a = signature(arguments);
           fn.apply(scope, a.rest)
-            .then(
-              function(result) {
-                a.callback(result);
-              },
-              function(err) {
-                a.errback(err);
-              }
-            );
+            .then(a.callback, a.errback);
         };
       },
       baroque: function(signature) {
         return function() {
           var a = signature(arguments);
           fn.apply(scope, a.rest)
-            .then(
-              function(result) {
-                a.callback(result);
-              },
-              function(err) {
-                a.errback(err);
-              }
-            );
+            .then(a.callback, a.errback);
         };
       },
       modern: function(signature) {
@@ -312,6 +353,59 @@ function make(fn, scope, from, to, engine) {
                 a.callback(err || true);
               }
             );
+        };
+      },
+      deferred: function(signature) {
+        return function() {
+          var a = signature(arguments),
+              deferred = colback.deferred();
+
+          fn.apply(scope, a.rest)
+            .then(deferred.resolve, deferred.reject);
+
+          return deferred.promise;
+        };
+      }
+    },
+
+    // From deferred
+    deferred: {
+      classical: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(a.callback)
+            .fail(a.errback);
+        };
+      },
+      baroque: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(a.callback)
+            .fail(a.errback);
+        };
+      },
+      modern: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          fn.apply(scope, a.rest)
+            .then(function(result) {
+              a.callback(null, result);
+            })
+            .fail(function(err) {
+              a.callback(err || true);
+            });
+        };
+      },
+      promise: function(signature) {
+        return function() {
+          var a = signature(arguments);
+          return new engine(function(resolve, reject) {
+            fn.apply(scope, a.rest)
+              .then(resolve)
+              .fail(reject);
+          });
         };
       }
     }

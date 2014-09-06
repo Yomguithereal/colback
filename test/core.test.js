@@ -7,10 +7,11 @@
 var assert = require('assert'),
     async = require('async'),
     Promise = require('promise'),
+    Q = require('q'),
     colback = require('../index.js');
 
-// TODO: add the deferred paradigm
 // TODO: test with another promise engine
+// TODO: add progress callbacks
 
 
 /**
@@ -45,6 +46,16 @@ var functions = {
       else
         reject('failure');
     });
+  },
+  deferred: function(successful) {
+    var deferred = Q.defer();
+
+    if (successful)
+      deferred.resolve('success');
+    else
+      deferred.reject('failure');
+
+    return deferred.promise;
   }
 };
 
@@ -110,6 +121,24 @@ var tests = {
       fail: function(next) {
         fn(false)
           .then(noop, function(err) {
+            assert.equal(err, 'failure');
+            next();
+          });
+      }
+    }, done);
+  },
+  deferred: function(fn, done) {
+    async.parallel({
+      success: function(next) {
+        fn(true)
+          .then(function(result) {
+            assert.equal(result, 'success');
+            next();
+          });
+      },
+      fail: function(next) {
+        fn(false)
+          .fail(function(err) {
             assert.equal(err, 'failure');
             next();
           });
