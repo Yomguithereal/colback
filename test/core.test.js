@@ -7,12 +7,11 @@
 var assert = require('assert'),
     async = require('async'),
     Promise = require('promise'),
+    deferred = require('deferred'),
     Q = require('q'),
     colback = require('../index.js');
 
-// TODO: test with another promise engine
 // TODO: add progress callbacks
-
 
 /**
  * Utilities
@@ -315,5 +314,10 @@ describe('When using the API', function() {
         });
       }
     }, done);
+  });
+
+  it('should be able to use other promise and deferred engines.', function(done) {
+    var shifted = colback(functions.classical).from('classical').to('deferred', deferred);
+    tests['deferred'](shifted, done);
   });
 });
