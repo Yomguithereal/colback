@@ -15,7 +15,7 @@ function capitalize(name) {
 }
 
 // Constants
-var DEFAULT_PARADIGM = 'promise',
+var DEFAULT_PARADIGM = 'deferred',
     DEFAULT_TIMEOUT = 2000;
 
 // Internals
@@ -47,12 +47,12 @@ function Messenger(params) {
       listeners = {};
 
   // Sending message
-  function request(header, body, timeoutOverride) {
+  function request(head, body, timeoutOverride) {
     var deferred = Q.defer(),
         timeout = timeoutOverride || self.timeout;
 
     // Checking
-    if (typeof timeout !== 'number' || !header)
+    if (typeof timeout !== 'number' || !head)
       throw Error('colback.messenger.send: wrong parameters.');
 
     // Assigning identifier to call
@@ -62,7 +62,7 @@ function Messenger(params) {
     calls[id] = {
       deferred: deferred,
       timeout: setTimeout(function() {
-        deferred.reject('timeout');
+        deferred.reject({reason: 'timeout'});
       }, timeout)
     };
 
@@ -70,7 +70,7 @@ function Messenger(params) {
     emitter.call(scope, {
       messenger: self.name,
       id: id,
-      header: header,
+      head: head,
       body: body
     });
 
@@ -78,10 +78,10 @@ function Messenger(params) {
   }
 
   // Unilateral message
-  function send(header, body) {
+  function send(head, body) {
     emitter.call(scope, {
       messenger: self.name,
-      header: header,
+      head: head,
       body: body
     });
   }
@@ -97,22 +97,22 @@ function Messenger(params) {
   }
 
   // Bind a listener
-  function bind(header, fn) {
-    if (!(header in listeners))
-      listeners[header] = [];
-    listeners[header].push(fn);
+  function bind(head, fn) {
+    if (!(head in listeners))
+      listeners[head] = [];
+    listeners[head].push(fn);
   }
 
   // Unbind a listener
-  function unbind(header, fn) {
-    var idx = (listeners[header] || []).indexOf(fn);
+  function unbind(head, fn) {
+    var idx = (listeners[head] || []).indexOf(fn);
 
-    if (!listeners[header] || !~idx)
+    if (!listeners[head] || !~idx)
       throw Error('colback.messenger: trying to unbind an irrelevant function.');
 
-    listeners[header].splice(idx, 1);
-    if (!listeners[header].length)
-      delete listeners[header];
+    listeners[head].splice(idx, 1);
+    if (!listeners[head].length)
+      delete listeners[head];
   }
 
   // Is the messenger shot?
@@ -130,8 +130,8 @@ function Messenger(params) {
       return;
 
     // If a listener is configured, fire callback
-    if (message.header in listeners)
-      listeners[message.header].forEach(function(l) {
+    if (message.head in listeners)
+      listeners[message.head].forEach(function(l) {
         l.call(self, message.body, function(data) {
           reply(message.id, message.messenger, data);
         })
@@ -154,23 +154,23 @@ function Messenger(params) {
   });
 
   // Main methods
-  this.request = function(header, data, timeoutOverride) {
+  this.request = function(head, data, timeoutOverride) {
     isShot();
-    return request(header, data, timeoutOverride);
+    return request(head, data, timeoutOverride);
   };
 
-  this.send = function(header, data) {
-    send(header, data);
+  this.send = function(head, data) {
+    send(head, data);
   };
 
-  this.on = function(header, fn) {
+  this.on = function(head, fn) {
     isShot();
-    bind(header, fn);
+    bind(head, fn);
   };
 
-  this.off = function(header, fn) {
+  this.off = function(head, fn) {
     isShot();
-    unbind(header, fn);
+    unbind(head, fn);
   };
 
   this.shoot = function() {
@@ -183,7 +183,7 @@ function Messenger(params) {
 
     // Terminating calls
     for (var k in calls) {
-      calls[k].deferred.reject('shot');
+      calls[k].deferred.reject({reason: 'shot'});
       clearTimeout(call[k].timeout);
     };
 
