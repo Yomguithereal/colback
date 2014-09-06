@@ -33,7 +33,7 @@ function Messenger(params) {
 
   var emitter = params.emitter,
       receptor = params.receptor,
-      scope = params.scope || this,
+      scope = params.scope || this,
       shot = false;
 
   // Checking
@@ -114,7 +114,7 @@ function Messenger(params) {
 
   // Receiving message
   receptor.call(scope, function(message) {
-    message = message || {};
+    message = message || {};
 
     // Ensuring message is correct
     if (typeof message.id !== 'number' || !message.messenger)
