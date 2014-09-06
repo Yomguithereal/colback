@@ -1,0 +1,410 @@
+
+/* make keyframes that tell the start state and the end state of our object */
+@-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.fade-in {
+  opacity:0;  /* make things invisible upon start */
+  -webkit-animation:fadeIn ease-in 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:fadeIn ease-in 1;
+  animation:fadeIn ease-in 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:.5s;
+  -moz-animation-duration:.5s;
+  animation-duration:.5s;
+}
+
+/* make keyframes that tell the start state and the end state of our object */
+@-webkit-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@-moz-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+.fade-out {
+  -webkit-animation:fadeOut ease-in 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:fadeOut ease-in 1;
+  animation:fadeOut ease-in 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:.5s;
+  -moz-animation-duration:.5s;
+  animation-duration:.5s;
+}
+
+/* make keyframes that tell the start state and the end state of our object */
+@-webkit-keyframes slideDown { from { top: -200px; } to { top: 0px; } }
+@-moz-keyframes slideDown { from { top: -200px; } to { top: 0px; }  }
+@keyframes slideDown { from { top: -200px; } to { top: 0px; }  }
+.slide-down {
+  top: -200px;  /* make things invisible upon start */
+  -webkit-animation:slideDown ease-out 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:slideDown ease-out 1;
+  animation:slideDown ease-out 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:.5s;
+  -moz-animation-duration:.5s;
+  animation-duration:.5s;
+}
+
+/* make keyframes that tell the start state and the end state of our object */
+@-webkit-keyframes slideUp { from { top: 0px; } to { top: -200px; } }
+@-moz-keyframes slideUp {  from { top: 0px; } to { top: -200px;   } }
+@keyframes slideUp { from { top: 0px; } to { top: -200px;  } }
+.slide-up {
+  -webkit-animation:slideUp ease-out 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:slideUp ease-out 1;
+  animation:slideUp ease-out 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:.5s;
+  -moz-animation-duration:.5s;
+  animation-duration:.5s;
+}
+
+body {
+  font-size:100%;
+  margin: 0 15px;
+  overflow-y:scroll;
+  font-family: 'PT Sans';
+}
+h2 {
+  font-size: 4rem;
+}
+h3 {
+  font-weight: bold;
+}
+h2, h3, h4, h5, h6, .highlight, ul {
+  margin: 0 auto 20px;
+  max-width: 750px;
+}
+/** Container  */
+/** Footer */
+#footer-home {
+  margin-top: 0px;
+  text-align:center;
+  padding-bottom: 50px;
+}
+#footer-home li {
+  display:inline-block;
+  line-height:50px;
+  font-size: 20px;
+  margin: 0 20px;
+}
+#footer-home a {
+  display:block;
+  color:#4A4A4A !important;
+  transition: color 500ms ease, text-shadow 500ms ease;
+  text-shadow: 1px 1px 1px #FFF;
+}
+#footer-home a:hover {
+  color: #000;
+}
+#footer-home p {
+  display:none;
+  color: #4A4A4A;
+  text-shadow:none;
+}
+#footer-home li:hover p {
+  display:block;
+  width: 700px;
+  position: absolute;
+  left: 50%;
+  margin: 40px 0 0 -350px;
+  padding-bottom: 40px;
+}
+#back {
+   font-size: 17px;
+   padding-top: 10px;
+}
+#logo {
+  text-align:center;
+  margin-top: 40px;
+  position: absolute;
+  margin-left: -80px !important;
+  left: 50%;
+  z-index:10;
+}
+#logo img {
+  width: 160px;
+  height: 160px;
+  border-radius: 80px;
+}
+header {
+  text-align:center;
+  padding-top: 178px;
+  margin:50px auto;
+}
+header h1 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+header p {
+  color: #999;
+}
+#last-articles {
+  border-top:1px solid #CCC;
+  font-size:20px;
+  margin-top:30px;
+  padding-top:40px;
+}
+#last-articles ul {
+  margin:0 0 40px 20px;
+}
+#last-articles time {
+  float:right;
+  font-style:italic;
+  font-size:0.7em;
+  padding-top:5px;
+}
+/** Buttons **/
+.button {
+  color:#666 !important;
+}
+/** Articles **/
+#list-articles {
+  margin:50px;
+}
+#list-articles h2 {
+  font-size:3rem;
+  margin:30px 0 20px -20px;
+}
+article img {
+  display: block;
+  margin: 0 auto;
+}
+.post-title, .static-title {
+  font-weight:300 !important;
+  text-align:center;
+  margin:0 0 9px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+.message {
+   background: #F0F0F0;
+   color: #222;
+   padding: 30px 50px;
+   margin-top: -10px;
+   margin-bottom: 30px;
+   font-size: 18px;
+   font-size: 1.8rem;
+   line-height: 1.875;
+}
+.article {
+  cursor: pointer;
+}
+.article a {
+  font-size: 21px;
+  font-weight: 300;
+  display: block;
+}
+.article a time {
+  float: right;
+  font-size: 16px;
+  font-style: italic;
+  color: #BABABA;
+}
+.article:hover span {
+  color: #979797 !important;
+}
+#post-content, #post-comments {
+  margin: 50px 0 12px 8.7%;
+}
+#post-content {
+  margin-bottom: 50px;
+}
+article h2 {
+  color:#222;
+  font-weight: 300 !important;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+article h2:before {
+  content:'›';
+  font:32px Times;
+  padding-right:7px;
+}
+
+.article-footer {
+  text-align: center;
+  font-weight: bold;
+  margin: 50px 0;
+}
+.article-footer a {
+  padding:15px 30px;
+  margin: 0 auto;
+  width: 200px;
+  font-size: 16px;
+  border-radius: 3px;
+  background-color: #d8d8d8;
+  border: 1px solid #979797;
+  color: #4a4a4a;
+  text-shadow: 1px 1px 1px #FFF;
+  transition: color 500ms ease, background 500ms ease, text-shadow 500ms ease;
+}
+.article-footer a:hover {
+  background-color: #4A4A4A;
+  color: #FFF;
+  text-shadow: 1px 1px 1px #4A4A4A;
+}
+.home-footer {
+  margin-top: 70px;
+}
+
+/** Footer **/
+#bottom {
+  font-size:14px;
+}
+#bottom li {
+  display:inline-block;
+  margin:0;
+}
+
+#content header {
+  padding-top: 178px;
+}
+/** List **/
+ul, ol {
+  margin: 0 auto 20px;
+  max-width: 680px;
+}
+ul li ul {
+  margin-top:0px;
+}
+li {
+  font-size:18px;
+  line-height:1.75em;
+}
+ul li {
+  list-style:square;
+}
+/** dl **/
+dl {
+   font-size: 18px;
+   font-size: 1.8rem;
+   line-height: 1.875;
+   margin: 0 auto 25px;
+   max-width: 750px;
+   line-height: 32px;
+}
+dt {
+   font-weight: 700;
+}
+dd {
+   margin-left: 32px;
+}
+
+/** 404 errors **/
+#not-found {
+  margin:280px 8.7% 60px;
+  text-align:center;
+}
+#not-found h1 {
+   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+   font-weight: 300 !important;
+}
+/** Table **/
+table{
+  margin: 0 auto 18px;
+}
+
+/** Figure **/
+figure {
+  margin: 0 0 20px;
+  text-align:center;
+}
+figcaption {
+  margin-top:15px;
+  font-size:1.3em;
+  font-style:italic;
+}
+.capture figcaption {
+  margin-top: -15px;
+}
+blockquote {
+  padding: 9px 20px;
+  margin-bottom: 18px;
+}
+blockquote p {
+  margin: 0;
+  line-height: 1.875;
+}
+blockquote footer{
+  text-align:right;
+  font-style:italic;
+}
+.dsq-editedtxt {
+  display:none;
+}
+.capitalize {
+  text-transform: capitalize;
+}
+/** Code **/
+pre{
+  padding: 8px;
+  border: 1px solid #E1E1E8;
+  font-family: Menlo, Monaco, "Courier New", monospace;
+  font-size: 14px;
+  margin:0 0 20px;
+  overflow-x:auto;
+}
+
+code {
+  padding: 2px 4px;
+  color: #000;
+  background-color: #EEE;
+  border: 1px solid #DDD;
+}
+
+@media only screen and (max-width: 768px) {
+  .ten {
+    width:auto !important;
+  }
+  #post-content, #post-comments {
+    margin-left:0;
+  }
+  ul, ol {
+    margin-left: 25px;
+  }
+  li, dl {
+   font-size: 16px;
+   font-size: 1.6rem;
+   line-height: 1.75;
+  }
+  #list-articles time {
+    display:none;
+  }
+  figure {
+    margin: 0 10px 20px 0;
+  }
+  #footer-home li {
+    margin: 0 20px;
+  }
+}
+/** MOBILE */
+@media only screen and (min-width: 0px) and (max-width: 475px) {
+  #list-articles h2 {
+    margin-left: 0 !important;
+  }
+  #post-content{
+    margin:0;
+    width:100% !important;
+  }
+  #footer-home li {
+    margin: 0 5px;
+  }
+  #list-articles {
+    margin: 50px 0;
+  }
+  figure {
+    margin: 0 20px 20px 0;
+  }
+} /* End Mobile Styles */

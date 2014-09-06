@@ -1,0 +1,15 @@
+# Site settings
+title: Colback.js
+description: "JavaScript asynchronous paradigm shift in the blink of an eye."
+baseurl: "/colback"
+author: Yomguithereal
+
+# Build settings
+markdown: redcarpet
+highlighter: pygment
+permalink: pretty
+
+# Meta
+meta:
+    github: https://github.com/Yomguithereal/colback
+    author: https://github.com/Yomguithereal

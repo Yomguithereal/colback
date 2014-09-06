@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html lang="fr">
+  <head>
+    {% include head.html %}
+  </head>
+  <body>
+   <div id="logo" class="ten centered slide-down">
+      <img src="{{ site.baseurl }}/img/colback.svg"></img>
+   </div>
+   <div id="content" class="fade-in">
+      <div class="row">
+         <header>
+            <h1 class="static-title">{{ page.title }}</h1>
+            <p>{{ site.description }}</p>
+         </header>
+         {{ content }}
+      </div>
+      {% include footer.html %}
+    </div>
+  </body>
+</html>
+
