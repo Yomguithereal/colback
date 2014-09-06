@@ -47,7 +47,7 @@ function Messenger(params) {
       listeners = {};
 
   // Sending message
-  function send(header, body, timeoutOverride) {
+  function request(header, body, timeoutOverride) {
     var deferred = Q.defer(),
         timeout = timeoutOverride || self.timeout;
 
@@ -75,6 +75,15 @@ function Messenger(params) {
     });
 
     return deferred.promise;
+  }
+
+  // Unilateral message
+  function send(header, body) {
+    emitter.call(scope, {
+      messenger: self.name,
+      header: header,
+      body: body
+    });
   }
 
   // Replying
@@ -147,7 +156,11 @@ function Messenger(params) {
   // Main methods
   this.request = function(header, data, timeoutOverride) {
     isShot();
-    return send(header, data, timeoutOverride);
+    return request(header, data, timeoutOverride);
+  };
+
+  this.send = function(header, data) {
+    send(header, data);
   };
 
   this.on = function(header, fn) {
