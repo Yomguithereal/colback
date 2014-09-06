@@ -91,7 +91,7 @@ describe('When dealing with messenger API polymorphism', function() {
   });
 });
 
-describe('When dealing with messagers', function() {
+describe('When dealing with messengers', function() {
   it('should be possible to instantiate one.', function() {
     var client = pair().client;
 
