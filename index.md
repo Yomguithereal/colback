@@ -247,13 +247,13 @@ Available paradigms are:
 
 <h2 id="explanation">What the hell is a colback?</h2>
 
-Colbacks are a kind of hat originating from Turkey and that were used mainly by napoleonic cavalry.
+Colbacks are a kind of hat originating from Turkey and that were mainly by napoleonic cavalry.
 
-Unfortunately there is no English Wikipedia article about this fine hat. So if you feel adventurous you could be that one person willing to translate the French [page](http://fr.wikipedia.org/wiki/Colback). Note that if you I shall praise you until the end of times.
+Unfortunately there is no English Wikipedia article about this fine hat. So, if you are the adventurous kind, you could be that one person willing to translate the French [page](http://fr.wikipedia.org/wiki/Colback). Note that if you do, I shall praise you until the end of times.
 
 If you feel frustrated by this lack of sources but still want to quench your thirst about napoleonic headgear, have this [page](http://en.wikipedia.org/wiki/Shako) about shakos instead.
 
-The phonetic proximity between "callback" and "colback" is of course strictly coincidental...
+The phonetic proximity between "callback" and "colback" is of course strictly coincidental.
 
 ---
 
@@ -261,7 +261,7 @@ The phonetic proximity between "callback" and "colback" is of course strictly co
 
 [![Build Status](https://travis-ci.org/medialab/artoo.svg)](https://travis-ci.org/Yomguithereal/colback)
 
-Contribution are more than welcome. Just be sure to add and pass unit tests if relevant before submitting any changes.
+Contributions are more than welcome. Just remember to add and pass relevant unit tests before submitting any changes.
 
 ```bash
 # Installing package dependencies

@@ -6,7 +6,7 @@ author: Yomguithereal
 
 # Build settings
 markdown: redcarpet
-highlighter: pygment
+highlighter: pygments
 permalink: pretty
 
 # Meta
