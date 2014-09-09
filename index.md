@@ -71,10 +71,10 @@ Note that **Colback.js** does not aim at solving callback hell. Some fairly good
 
 ---
 
-* [Asynchronous paradigms](#paradigms)
-* [Installation](#installation)
-* [Paradigm shifting](#shifting)
-* [Messengers](#messengers)
+* **[Asynchronous paradigms](#paradigms)**
+* **[Installation](#installation)**
+* **[Paradigm shifting](#shifting)**
+* **[Messengers](#messengers)**
 * [What the hell is a colback?](#explanation)
 * [Contribution](#contribution)
 * [License](#license)
@@ -301,6 +301,101 @@ shiftedFunctions.two();
 ---
 
 <h2 id="messengers">Messengers</h2>
+
+---
+
+Even if this is quite simple to shift some functions from one paradigm to another, it remains difficult to use standard asynchronous functions for some precise use cases.
+
+For instance, when using websockets, you might find yourself in a situation were you send a message to the server and you need to wait for its response before continuing.
+
+Typically, this kind of messaging is often coded using event handlers, which is perfectly fine in most of the cases but which can feel clumsy at times.
+
+Indeed, you might want to code something like this:
+
+```js
+// You want this
+socket.emit('message', function(err, result) {
+  // Do something with server response.
+});
+
+// Rather than that
+socket.emit('message');
+
+socket.on('server-response', function(data) {
+  // Do something with server response.
+});
+```
+
+This is what **Colback.js**' messenging achieves, while enabling you to draw a simple communication process between several messengers.
+
+### Client & Server example usage
+
+### Instantiation
+
+```js
+var colback = require('colback');
+
+var messenger = colback.messenger(config);
+```
+
+* **emitter** *function* : a function taking the data to send and emitting messages.
+* **receptor** *function* : a function taking a callback and boostrapping the message reception.
+* **timeout** *?number* [`2000`] : default call timeout in milliseconds.
+* **paradigm** *?string* [`'deferred'`] : the desired paradigm for the messenger's methods.
+
+### Methods
+
+*request*
+
+```js
+// Sending a message to another messenger and waiting a response
+var promise = messenger.request(header, data, timeoutOverride);
+
+// Example
+messenger.request('users', {id: 23})
+  .then(function(user) {
+    // Do something with retrieved user.
+  });
+```
+
+*send*
+
+```js
+// Sending an unilateral message which does not need to be replied
+messenger.send(header, data);
+
+// Example
+messenger.send('message', {hello: 'world'});
+```
+
+*on*
+
+```js
+// Bind a listener on a precise kind of message
+messenger.on(header, callback);
+
+// Example
+messenger.on('users', function(data, reply) {
+
+  // Do something with data, then send response
+  reply({firstname: 'Joachim', lastname: 'Murat'});
+});
+```
+
+*off*
+
+```js
+// Unbind a listener
+messenger.on(header, callback);
+```
+
+*shoot*
+
+```js
+// Shoot the messenger and terminates its current call so
+// it won't be able to communicate again.
+messenger.shoot();
+```
 
 ---
 
