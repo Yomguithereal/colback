@@ -9,6 +9,8 @@ There are a lot of ways to deal with asynchronous flow in JavaScript. But, even 
 
 **Colback.js** therefore aims at providing a straightforward utility to shift functions from one asynchronous paradigm to another.
 
+<br>
+
 ---
 
 ## The ominous culprit
@@ -65,19 +67,48 @@ shiftedFunction('key').then(function(results) {
 
 Note that **Colback.js** does not aim at solving callback hell. Some fairly good libraries such as [async](https://github.com/caolan/async) or [contra](https://github.com/bevacqua/contra) already exist for this kind of issues.
 
+<br>
+
 ---
 
 ## Summary
 
 ---
 
-* **[Asynchronous paradigms](#paradigms)**
 * **[Installation](#installation)**
+* **[Asynchronous paradigms](#paradigms)**
 * **[Paradigm shifting](#shifting)**
 * **[Messengers](#messengers)**
 * [What the hell is a colback?](#explanation)
 * [Contribution](#contribution)
 * [License](#license)
+
+<br>
+
+---
+
+<h2 id="installation">Installation</h2>
+
+---
+
+**Colback.js** can be used with Node.js, Phantom.js, and in the browser through [Browserify](http://browserify.org/).
+
+To install with npm:
+
+```js
+npm install colback
+
+// To install latest development version
+npm install git+https://github.com/Yomguithereal/colback.git
+```
+
+Then require it:
+
+```js
+var colback = require('colback');
+```
+
+<br>
 
 ---
 
@@ -85,7 +116,7 @@ Note that **Colback.js** does not aim at solving callback hell. Some fairly good
 
 ---
 
-One can find at least six main asynchronous functions' paradigms in JavaScript.
+One can find at least five main asynchronous functions' paradigms in JavaScript.
 
 ### The classical paradigm
 
@@ -163,70 +194,7 @@ asyncFunction()
 
 **N.B.**: By default, **Colback.js** uses [Q](https://www.npmjs.org/package/q)'s deferred implementation.
 
-### The event paradigm
-
-Note that this paradigm is not supported by **Colback.js** due to its versatility.
-
-Frankly, it would be a pain to find a generic way to shift event-based functions and one can do it faster in a ad-hoc way.
-
-Let's take [XHR](http://en.wikipedia.org/wiki/XMLHttpRequest) to demonstrate this:
-
-```js
-// This is how you normally do XHR
-var xhr = new XMLHttpRequest();
-xhr.open('GET', 'url', true);
-xhr.onreadystatechange = function() {
-  if (xhr.readyState === 4) {
-    // The request completed...
-  }
-};
-
-// Let's wrap it up in the "modern" paradigm
-function xhrRequest(url, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', 'url', true);
-  xhr.onreadystatechange = function() {
-    if (xhr.status !== 200) {
-      callback('failure');
-    }
-    if (xhr.readyState === 4) {
-      // The request completed...
-      callback(null, 'success');
-    }
-  };
-}
-
-// Now let's use it likewise
-xhrRequest(function(err, results) {
-  if (err)
-    // Something went horribly wrong...
-  else
-    // Everything went smoothly...
-})
-```
-
----
-
-<h2 id="installation">Installation</h2>
-
----
-
-**Colback.js** can be used with Node.js, Phantom.js, and in the browser through [Browserify](http://browserify.org/).
-
-To install with npm:
-
-```js
-npm install colback
-
-// To install latest development version
-npm install git+https://github.com/Yomguithereal/colback.git
-```
-
-Then require it:
-
-```js
-var colback = require('colback');
-```
+<br>
 
 ---
 
@@ -298,19 +266,21 @@ shiftedFunctions.one();
 shiftedFunctions.two();
 ```
 
+<br>
+
 ---
 
 <h2 id="messengers">Messengers</h2>
 
 ---
 
-Even if this is quite simple to shift some functions from one paradigm to another, it remains difficult to use standard asynchronous functions for some precise use cases.
+Even if this is quite simple to shift some functions from one paradigm to another, it remains difficult to use standard asynchronous functions in some precise use cases.
 
-For instance, when using websockets, you might find yourself in a situation were you send a message to the server and you need to wait for its response before continuing.
+For instance, when using websockets, you might find yourself in a situation where you send a message to the server and you need to wait for its response before continuing.
 
-Typically, this kind of messaging is often coded using event handlers, which is perfectly fine in most of the cases but which can feel clumsy at times.
+Typically, this kind of messaging is often coded using event handlers, which is perfectly fine but feels clumsy at times.
 
-Indeed, you might want to code something like this:
+You might prefer coding something like this:
 
 ```js
 // You want this
@@ -326,9 +296,9 @@ socket.on('server-response', function(data) {
 });
 ```
 
-This is what **Colback.js**' messenging achieves, while enabling you to draw a simple communication process between several messengers.
-
 ### Client & Server example usage
+
+Let's assume we want to build a simple websocket client that would query a server to retrieve some data.
 
 ### Instantiation
 
@@ -392,10 +362,12 @@ messenger.on(header, callback);
 *shoot*
 
 ```js
-// Shoot the messenger and terminates its current call so
+// Shoot the messenger and terminate its current call so
 // it won't be able to communicate again.
 messenger.shoot();
 ```
+
+<br>
 
 ---
 
@@ -410,6 +382,8 @@ Unfortunately there is no English Wikipedia article about this fine hat. So, if 
 If you feel frustrated by this lack of sources but still want to quench your thirst about napoleonic headgear, have this [page](http://en.wikipedia.org/wiki/Shako) about shakos instead.
 
 The phonetic proximity between "callback" and "colback" is of course strictly coincidental.
+
+<br>
 
 ---
 
@@ -428,6 +402,8 @@ npm install
 # Running tests
 npm test
 ```
+
+<br>
 
 ---
 
