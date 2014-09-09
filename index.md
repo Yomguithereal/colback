@@ -7,11 +7,13 @@ title:  "Colback.js"
 
 There are a lot of ways to deal with asynchronous flow in JavaScript. But, even if diversity must be cherished, it is sometimes a drag to gather libraries abiding by some different asynchronous paradigms.
 
-**Colback.js** therefore aims at providing a dead-easy way to shift functions from one asynchronous paradigm to another.
+**Colback.js** therefore aims at providing a straightforward utility to shift functions from one asynchronous paradigm to another.
 
 ---
 
 ## The ominous culprit
+
+---
 
 Let's say you want to write some fairly consistent code but need to use some libraries to gather and process data in an asynchronous fashion.
 
@@ -61,15 +63,16 @@ shiftedFunction('key').then(function(results) {
 });
 ```
 
-Note that **Colback.js** does not aim at solving callback hell. Some fairly good libraries such as [async](https://github.com/caolan/async) or [contra](https://github.com/bevacqua/contra) already exist for this.
+Note that **Colback.js** does not aim at solving callback hell. Some fairly good libraries such as [async](https://github.com/caolan/async) or [contra](https://github.com/bevacqua/contra) already exist for this kind of issues.
 
 ---
 
 ## Summary
 
+---
+
 * [Asynchronous paradigms](#paradigms)
 * [Installation](#installation)
-* [Usage](#usage)
 * [Paradigm shifting](#shifting)
 * [Messengers](#messengers)
 * [What the hell is a colback?](#explanation)
@@ -80,7 +83,9 @@ Note that **Colback.js** does not aim at solving callback hell. Some fairly good
 
 <h2 id="paradigms">Asynchronous paradigms</h2>
 
-One can find at most six main asynchronous functions' paradigms in JavaScript.
+---
+
+One can find at least six main asynchronous functions' paradigms in JavaScript.
 
 ### The classical paradigm
 
@@ -140,7 +145,7 @@ asyncFunction().then(
 );
 ```
 
-**N.B.**: By default, **Colback.js** uses [this](https://www.npmjs.org/package/promise) promise implementation.
+**N.B.**: By default, **Colback.js** uses [then](https://www.npmjs.org/package/promise)'s promise implementation.
 
 ### The deferred paradigm
 
@@ -204,6 +209,8 @@ xhrRequest(function(err, results) {
 
 <h2 id="installation">Installation</h2>
 
+---
+
 **Colback.js** can be used with Node.js, Phantom.js, and in the browser through [Browserify](http://browserify.org/).
 
 To install with npm:
@@ -223,31 +230,85 @@ var colback = require('colback');
 
 ---
 
-<h2 id="usage">Usage</h2>
+<h2 id="shifting">Paradigm shifting</h2>
 
-<h3 id="shifting">Paradigm shifting</h3>
+---
 
 ```js
 var colback = require('colback');
 
-var shiftedFunction = colback(originalFunction, [scope]).from(paradigm).to(paradigm);
+var shiftedFunction = colback(originalFunction, [scope])
+  .from(paradigm)
+  .to(paradigm, [implementation]);
+
+// Available paradigm, as stated before, are:
+// 'classical', 'baroque', 'modern'
+// 'promise' and 'deferred'
 ```
 
-Available paradigms are:
+**Examples**
 
-* classical
-* baroque
-* modern
-* promise
-* deferred
+*Shifting a function from the promise paradigm to the modern one:*
 
-<h3 id="messengers">Messengers</h3>
+```js
+var modernFunction = colback(promiseFunction).from('promise').to('modern');
+```
+
+*Shifting a function that needs a precise scope:*
+
+```js
+// Example class
+function Example() {
+
+  this.salutation = 'Hello!';
+
+  this.greet = function() {
+    return this.salutation;
+  };
+}
+
+// One would need the scope to be correct when applying this class' greeting method.
+var example = new Example();
+
+var shiftedMethod = colback(example.greet, example).from('modern').to('classical');
+```
+
+*Using your own `promise` or `deferred` implementation rather than defaults.*
+
+```js
+var myDeferred = require('deferred');
+
+var shiftedFunction = colback(originalFunction)
+  .from('classical')
+  .to('deferred', myDeferred);
+```
+
+*Shifting a whole batch of functions at once*
+
+```js
+var originalFunctions = {
+  one: function1,
+  two: function2
+};
+
+var shiftedFunctions = colback(originalFunctions).from('deferred').to('classical');
+
+// Now let's call them likewise:
+shiftedFunctions.one();
+shiftedFunctions.two();
+```
+
+---
+
+<h2 id="messengers">Messengers</h2>
 
 ---
 
 <h2 id="explanation">What the hell is a colback?</h2>
 
-Colbacks are a kind of hat originating from Turkey and that were mainly by napoleonic cavalry.
+---
+
+Colbacks are a kind of hat originating from Turkey and that were mainly worn by napoleonic cavalry.
 
 Unfortunately there is no English Wikipedia article about this fine hat. So, if you are the adventurous kind, you could be that one person willing to translate the French [page](http://fr.wikipedia.org/wiki/Colback). Note that if you do, I shall praise you until the end of times.
 
@@ -258,6 +319,8 @@ The phonetic proximity between "callback" and "colback" is of course strictly co
 ---
 
 <h2 id="contribution">Contribution</h2>
+
+---
 
 [![Build Status](https://travis-ci.org/medialab/artoo.svg)](https://travis-ci.org/Yomguithereal/colback)
 
@@ -274,6 +337,8 @@ npm test
 ---
 
 <h2 id="license">License</h2>
+
+---
 
 The MIT License (MIT)
 
