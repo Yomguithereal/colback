@@ -1,6 +1,6 @@
 {
   "name": "colback",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Asynchronous paradigm shift in the blink of an eye.",
   "main": "index.js",
   "scripts": {
