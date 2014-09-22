@@ -7,7 +7,15 @@ title:  "Colback.js"
 
 There are a lot of ways to deal with asynchronous flow in JavaScript. But, even if diversity must be cherished, it is sometimes a drag to gather libraries abiding by some different asynchronous paradigms.
 
-**Colback.js** therefore aims at providing a straightforward utility to shift functions from one asynchronous paradigm to another.
+**Colback.js** aims at providing straightforward helpers to shift functions from one asynchronous paradigm to the other.
+
+```js
+var colback = require('colback');
+
+var shiftedFunction = colback(myFunction)
+  .from(sourceParadigm)
+  .to(targetParadigm);
+```
 
 <br>
 
@@ -218,7 +226,9 @@ var shiftedFunction = colback(originalFunction, [scope])
 *Shifting a function from the promise paradigm to the modern one:*
 
 ```js
-var modernFunction = colback(promiseFunction).from('promise').to('modern');
+var modernFunction = colback(promiseFunction)
+  .from('promise')
+  .to('modern');
 ```
 
 *Shifting a function that needs a precise scope:*
@@ -237,7 +247,14 @@ function Example() {
 // One would need the scope to be correct when applying this class' greeting method.
 var example = new Example();
 
-var shiftedMethod = colback(example.greet, example).from('modern').to('classical');
+var shiftedMethod = colback(example.greet, example)
+  .from('modern')
+  .to('classical');
+
+// Note that you could also do the following
+var shiftedMethod = colback(example.greet.bind(example))
+  .from('modern')
+  .to('classical');
 ```
 
 *Using your own `promise` or `deferred` implementation rather than defaults.*
