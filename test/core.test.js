@@ -218,7 +218,8 @@ describe('When using the API', function() {
     var lib = new Lib();
 
     // Shifting the instance's method
-    var shiftedGreet = colback(lib.greet, lib).from('modern').to('promise');
+    var shiftedGreet = colback(lib.greet, lib).from('modern').to('promise'),
+        boundGreet = colback(lib.greet.bind(lib)).from('modern').to('classical');
 
     // Testing
     async.parallel({
@@ -230,6 +231,12 @@ describe('When using the API', function() {
       },
       shifted: function(next) {
         shiftedGreet().then(function(greeting) {
+          assert.equal(greeting, 'Hello!');
+          next();
+        });
+      },
+      withBind: function(next) {
+        boundGreet(function(greeting) {
           assert.equal(greeting, 'Hello!');
           next();
         });

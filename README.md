@@ -6,7 +6,7 @@
 
 # Colback.js
 
-**Colback.js** is a JavaScript library aiming at providing simple utilities to shift asynchronous functions from one paradigm to another.
+**Colback.js** is a JavaScript library aiming at providing simple utilities to shift asynchronous functions from one paradigm to the other.
 
 Full documentation is available [here](http://yomguithereal.github.io/colback/).
 
