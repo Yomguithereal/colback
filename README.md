@@ -12,7 +12,7 @@ Full documentation is available [here](http://yomguithereal.github.io/colback/).
 
 ## Contribution
 
-[![Build Status](https://travis-ci.org/medialab/artoo.svg)](https://travis-ci.org/Yomguithereal/colback)
+[![Build Status](https://travis-ci.org/Yomguithereal/colback.svg)](https://travis-ci.org/Yomguithereal/colback)
 
 Contributions are more than welcome. Just remember to add and pass relevant unit tests before submitting any changes.
 
