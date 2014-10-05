@@ -52,11 +52,11 @@ describe('When dealing with messenger API polymorphism', function() {
 
   it('should throw an exception when passing wrong parameters.', function() {
     assert.throws(function() {
-      new colback.messenger({receptor: 14});
+      new colback.messenger({name: 'x', receptor: 14});
     }, Error);
 
     assert.throws(function() {
-      new colback.messenger({emitter: 'this is obviously not a function.'});
+      new colback.messenger({name: 'y', emitter: 'this is obviously not a function.'});
     }, Error);
 
     assert.throws(function() {
@@ -150,6 +150,29 @@ describe('When dealing with messengers', function() {
     });
 
     clientMessenger.send('more', 'troops');
+  });
+
+  it('should be possible to emit a unilateral message to a precise messenger.', function(done) {
+    var p = pair();
+
+    var clientMessenger = new colback.messenger({
+      name: 'Josephine',
+      emitter: p.client.emitter,
+      receptor: p.client.receptor
+    });
+
+    var serverMessenger = new colback.messenger({
+      name: 'Napoleon',
+      emitter: p.server.emitter,
+      receptor: p.server.receptor
+    });
+
+    clientMessenger.on('*', function(data) {
+      assert.strictEqual(data, 'troops');
+      done();
+    });
+
+    serverMessenger.send('Josephine', 'more', 'troops');
   });
 
   it('should timeout calls correctly.', function(done) {

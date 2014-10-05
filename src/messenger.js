@@ -9,25 +9,23 @@
 var Q = require('q'),
     core = require('./core.js');
 
-// Utilities
-function capitalize(name) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
+// TODO: work the unbinding correctly
+// TODO: store currently used names?
 // Constants
 var DEFAULT_PARADIGM = 'deferred',
     DEFAULT_TIMEOUT = 2000;
 
-// Internals
-var name = 0;
-
 // Main class
 function Messenger(params) {
   var self = this;
+  params = params || {};
+
+  // Checking name
+  if (typeof params.name !== 'string')
+    throw Error('colback.messenger: messengers must be given a name.');
 
   // Properties and defaults
-  params = params || {};
-  this.name = params.name || '' + (name++);
+  this.name = params.name;
   this.timeout = params.timeout || DEFAULT_TIMEOUT;
   this.paradigm = params.paradigm || DEFAULT_PARADIGM;
 
@@ -44,7 +42,8 @@ function Messenger(params) {
   // Private
   var counter = 0,
       calls = {},
-      listeners = {};
+      listeners = {},
+      onceListeners = [];
 
   // Sending message
   function request(head, body, timeoutOverride) {
@@ -78,18 +77,26 @@ function Messenger(params) {
   }
 
   // Unilateral message
-  function send(head, body) {
-    emitter.call(scope, {
-      messenger: self.name,
-      head: head,
-      body: body
-    });
+  function send(to, head, body) {
+    if (!body)
+      emitter.call(scope, {
+        messenger: self.name,
+        head: to,
+        body: head
+      });
+    else
+      emitter.call(scope, {
+        messenger: self.name,
+        to: to,
+        head: head,
+        body: body
+      });
   }
 
   // Replying
-  function reply(id, replyTo, body) {
+  function reply(id, to, body) {
     emitter.call(scope, {
-      replyTo: replyTo,
+      to: to,
       messenger: self.name,
       id: id,
       body: body
@@ -97,10 +104,13 @@ function Messenger(params) {
   }
 
   // Bind a listener
-  function bind(head, fn) {
+  function bind(head, fn, onlyOnce) {
     if (!(head in listeners))
       listeners[head] = [];
     listeners[head].push(fn);
+
+    if (onlyOnce)
+      onceListeners.push(onlyOnce);
   }
 
   // Unbind a listener
@@ -113,6 +123,11 @@ function Messenger(params) {
     listeners[head].splice(idx, 1);
     if (!listeners[head].length)
       delete listeners[head];
+
+    // Dropping from once
+    idx = onlyOnce.indexOf(fn);
+    if (~idx)
+      onlyOnce.splice(idx, 1);
   }
 
   // Is the messenger shot?
@@ -126,19 +141,27 @@ function Messenger(params) {
     message = message || {};
 
     // Ensuring message is correct
-    if (typeof message.id !== 'number' || !message.messenger)
+    if (!message.messenger)
       return;
 
     // If a listener is configured, fire callback
-    if (message.head in listeners)
-      listeners[message.head].forEach(function(l) {
-        l.call(self, message.body, function(data) {
-          reply(message.id, message.messenger, data);
-        })
-      });
+    if ((message.head in listeners || (listeners['*'] || []).length) &&
+        (message.to === self.name || !message.to))
+      (listeners[message.head] || [])
+        .concat(listeners['*'] || [])
+        .forEach(function(l) {
+          l.call(self, message.body, function(data) {
+            reply(message.id, message.messenger, data);
+          });
+
+          // Unbinding listener if needed
+          if (~onceListeners.indexOf(l))
+            unbind(l);
+        }
+      );
 
     // Ensuring message belongs to messenger
-    if (message.replyTo !== self.name)
+    if (message.to !== self.name)
       return;
 
     // Ensuring such a call was passed
@@ -159,11 +182,17 @@ function Messenger(params) {
     return request(head, data, timeoutOverride);
   };
 
-  this.send = function(head, data) {
-    send(head, data);
+  this.send = function(to, head, data) {
+    isShot();
+    send(to, head, data);
   };
 
   this.on = function(head, fn) {
+    isShot();
+    bind(head, fn);
+  };
+
+  this.once = function(head, fn) {
     isShot();
     bind(head, fn);
   };
