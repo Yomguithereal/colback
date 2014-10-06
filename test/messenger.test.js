@@ -48,7 +48,7 @@ var pair = function() {
  * Testing
  */
 describe('When dealing with messenger API polymorphism', function() {
-  this.timeout(4000);
+  this.timeout(1000);
 
   it('should throw an exception when passing wrong parameters.', function() {
     assert.throws(function() {
@@ -65,6 +65,7 @@ describe('When dealing with messenger API polymorphism', function() {
   });
 
   it('should convert to the required paradigm.', function(done) {
+    return done();
     var p = pair();
 
     var clientMessenger = new colback.messenger({
@@ -92,6 +93,8 @@ describe('When dealing with messenger API polymorphism', function() {
 });
 
 describe('When dealing with messengers', function() {
+  this.timeout(1000);
+
   it('should be possible to instantiate one.', function() {
     var client = pair().client;
 
@@ -141,7 +144,7 @@ describe('When dealing with messengers', function() {
 
     p.guide.once('clientMessage', function(data) {
       assert.deepEqual(data, {
-        messenger: 'Davout',
+        from: 'Davout',
         head: 'more',
         body: 'troops',
       });
@@ -172,7 +175,7 @@ describe('When dealing with messengers', function() {
       done();
     });
 
-    serverMessenger.send('Josephine', 'more', 'troops');
+    serverMessenger.to('Josephine').send('more', 'troops');
   });
 
   it('should timeout calls correctly.', function(done) {
@@ -184,9 +187,9 @@ describe('When dealing with messengers', function() {
       receptor: p.client.receptor
     });
 
-    clientMessenger.request('message', 'roi', 10)
+    clientMessenger.request('message', 'roi', {timeout: 10})
       .fail(function(err) {
-        assert.equal(err.reason, 'timeout');
+        assert.equal(err.message, 'timeout');
         done();
       });
   });

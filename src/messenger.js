@@ -9,11 +9,18 @@
 var Q = require('q'),
     core = require('./core.js');
 
-// TODO: work the unbinding correctly
-// TODO: store currently used names?
 // Constants
 var DEFAULT_PARADIGM = 'deferred',
     DEFAULT_TIMEOUT = 2000;
+
+// Helpers
+function indexOf(a, fn, scope) {
+  for (var i = 0, l = a.length; i < l; i++) {
+    if (fn.call(scope || null, a[i]))
+      return i;
+  }
+  return -1;
+}
 
 // Main class
 function Messenger(params) {
@@ -42,16 +49,34 @@ function Messenger(params) {
   // Private
   var counter = 0,
       calls = {},
-      listeners = {},
-      onceListeners = [];
+      listeners = {};
+
+  // Unilateral message
+  function send(to, head, body) {
+    if (!to)
+      emitter.call(scope, {
+        from: self.name,
+        head: head,
+        body: body
+      });
+    else
+      emitter.call(scope, {
+        from: self.name,
+        to: to,
+        head: head,
+        body: body
+      }, to);
+  }
 
   // Sending message
-  function request(head, body, timeoutOverride) {
+  function request(to, head, body, params) {
+    params = params || {};
+
     var deferred = Q.defer(),
-        timeout = timeoutOverride || self.timeout;
+        timeout = params.timeout || self.timeout;
 
     // Checking
-    if (typeof timeout !== 'number' || !head)
+    if (typeof timeout !== 'number')
       throw Error('colback.messenger.send: wrong parameters.');
 
     // Assigning identifier to call
@@ -61,73 +86,99 @@ function Messenger(params) {
     calls[id] = {
       deferred: deferred,
       timeout: setTimeout(function() {
-        deferred.reject({reason: 'timeout'});
+        deferred.reject(new Error('timeout'));
       }, timeout)
     };
 
     // Using emitter to send message to server
-    emitter.call(scope, {
-      messenger: self.name,
-      id: id,
-      head: head,
-      body: body
-    });
-
-    return deferred.promise;
-  }
-
-  // Unilateral message
-  function send(to, head, body) {
-    if (!body)
+    if (to)
       emitter.call(scope, {
-        messenger: self.name,
-        head: to,
-        body: head
-      });
+        from: self.name,
+        to: to,
+        id: id,
+        head: head,
+        body: body
+      }, to);
     else
       emitter.call(scope, {
-        messenger: self.name,
-        to: to,
+        from: self.name,
+        id: id,
         head: head,
         body: body
       });
+
+    return deferred.promise;
   }
 
   // Replying
   function reply(id, to, body) {
     emitter.call(scope, {
       to: to,
-      messenger: self.name,
+      from: self.name,
       id: id,
       body: body
-    });
+    }, to);
   }
 
   // Bind a listener
-  function bind(head, fn, onlyOnce) {
+  function bind(head, fn, onlyOnce, from) {
     if (!(head in listeners))
       listeners[head] = [];
-    listeners[head].push(fn);
 
-    if (onlyOnce)
-      onceListeners.push(onlyOnce);
+    listeners[head].push({
+      fn: fn,
+      once: onlyOnce,
+      from: from
+    });
   }
 
   // Unbind a listener
   function unbind(head, fn) {
-    var idx = (listeners[head] || []).indexOf(fn);
+    if (typeof head === 'function') {
+      fn = head;
+      head = null;
+    }
 
-    if (!listeners[head] || !~idx)
-      throw Error('colback.messenger: trying to unbind an irrelevant function.');
+    if (head) {
 
-    listeners[head].splice(idx, 1);
-    if (!listeners[head].length)
+      // Searching in head
+      var idx = indexOf(listeners[head] || [], function(listener) {
+        return listener.fn === fn;
+      });
+
+      if (!~idx)
+        throw Error('colback.messenger: trying to unbind an irrelevant function.');
+
+      listeners[head].splice(idx, 1);
+
+      if (!listeners[head].length)
+        delete listeners[head];
+    }
+    else if (typeof fn === 'function') {
+
+      // Searching in every category
+      var heads = Object.keys(listeners);
+
+      heads.forEach(function(head) {
+        var idx = indexOf(listeners[head] || [], function(listener) {
+          return listener.fn === fn;
+        });
+
+        if (~idx) {
+          listeners[head].splice(idx, 1);
+
+          if (!listeners[head].length)
+            delete listeners[head];
+        }
+      });
+    }
+    else {
+
+      // Obliterating a category
+      if (!(head in listeners))
+        throw Error('colback.messenger: trying to unbind an irrelevant head.');
       delete listeners[head];
-
-    // Dropping from once
-    idx = onlyOnce.indexOf(fn);
-    if (~idx)
-      onlyOnce.splice(idx, 1);
+    }
   }
 
   // Is the messenger shot?
@@ -141,65 +192,103 @@ function Messenger(params) {
     message = message || {};
 
     // Ensuring message is correct
-    if (!message.messenger)
+    if (!message.from)
       return;
 
     // If a listener is configured, fire callback
-    if ((message.head in listeners || (listeners['*'] || []).length) &&
-        (message.to === self.name || !message.to))
-      (listeners[message.head] || [])
-        .concat(listeners['*'] || [])
-        .forEach(function(l) {
-          l.call(self, message.body, function(data) {
-            reply(message.id, message.messenger, data);
-          });
+    var haystack = (listeners[message.head] || []).concat(listeners['*'] || []);
 
-          // Unbinding listener if needed
-          if (~onceListeners.indexOf(l))
-            unbind(l);
-        }
-      );
+    haystack.forEach(function(listener) {
 
-    // Ensuring message belongs to messenger
-    if (message.to !== self.name)
-      return;
+      // Conditions
+      if ((message.to && message.to !== self.name) ||
+          (listener.from && message.from !== listener.from))
+        return;
+
+      listener.fn.call(self, message.body, function(data) {
+        reply(message.id, message.from, data);
+      });
+
+      if (listener.once)
+        unbind(listener);
+    });
 
     // Ensuring such a call was passed
-    if (!(message.id in calls))
+    if (message.to !== self.name || !(message.id in calls))
       return;
 
     // Resolving deferred
     calls[message.id].deferred.resolve(message.body);
 
-    // Clearing stack
+    // Clearing call timeout
     clearTimeout(calls[message.id].timeout);
     delete calls[message.id];
   });
 
   // Main methods
-  this.request = function(head, data, timeoutOverride) {
+  this.request = function(head, data, params) {
     isShot();
-    return request(head, data, timeoutOverride);
+    return request(null, head, data, params);
   };
 
-  this.send = function(to, head, data) {
+  this.send = function(head, data) {
     isShot();
-    send(to, head, data);
+    send(null, head, data);
+    return this;
   };
 
-  this.on = function(head, fn) {
+  this.on = function(from, head, fn) {
     isShot();
-    bind(head, fn);
+
+    if (typeof head === 'function')
+      bind(from, head, false, null);
+    else
+      bind(head, fn, false, from);
+    return this;
   };
 
-  this.once = function(head, fn) {
+  this.once = function(from, head, fn) {
     isShot();
-    bind(head, fn);
+
+    if (typeof head === 'function')
+      bind(from, head, true, null);
+    else
+      bind(head, fn, true, from);
+    return this;
   };
 
   this.off = function(head, fn) {
     isShot();
     unbind(head, fn);
+    return this;
+  };
+
+  this.to = function(to) {
+    return {
+      send: function(head, data) {
+        isShot();
+        send(to, head, data);
+        return this;
+      },
+      request: function(head, data, params) {
+        isShot();
+        return request(to, head, data, params);
+      }
+    };
+  };
+
+  this.from = function(from) {
+    return {
+      on: function(head, fn) {
+        return self.on(from, head, fn);
+      },
+      once: function(head, fn) {
+        return self.once(from, head, fn);
+      },
+      off: function(head, fn) {
+        return self.off(from, fn);
+      }
+    };
   };
 
   this.shoot = function() {
@@ -212,13 +301,15 @@ function Messenger(params) {
 
     // Terminating calls
     for (var k in calls) {
-      calls[k].deferred.reject({reason: 'shot'});
+      calls[k].deferred.reject(new Error('messenger-shot'));
       clearTimeout(call[k].timeout);
     };
 
     delete calls;
 
     shot = true;
+
+    return this;
   };
 
   // Applying paradigm
