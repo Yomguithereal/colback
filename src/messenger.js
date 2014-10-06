@@ -210,7 +210,7 @@ function Messenger(params) {
       });
 
       if (listener.once)
-        unbind(listener);
+        unbind(listener.fn);
     });
 
     // Ensuring such a call was passed
