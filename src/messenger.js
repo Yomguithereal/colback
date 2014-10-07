@@ -97,14 +97,16 @@ function Messenger(params) {
         to: to,
         id: id,
         head: head,
-        body: body
+        body: body,
+        timeout: timeout
       }, to);
     else
       emitter.call(scope, {
         from: self.name,
         id: id,
         head: head,
-        body: body
+        body: body,
+        timeout: timeout
       });
 
     return deferred.promise;
