@@ -22,6 +22,13 @@ function indexOf(a, fn, scope) {
   return -1;
 }
 
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+  });
+}
+
 // Main class
 function Messenger(params) {
   var self = this;
@@ -47,8 +54,7 @@ function Messenger(params) {
     throw Error('colback.messenger: invalid emitter or receptor.');
 
   // Private
-  var counter = 0,
-      calls = {},
+  var calls = {},
       listeners = {};
 
   // Unilateral message
@@ -80,7 +86,7 @@ function Messenger(params) {
       throw Error('colback.messenger.send: wrong parameters.');
 
     // Assigning identifier to call
-    var id = counter++;
+    var id = uuid();
 
     // Registering call and its timeout
     calls[id] = {
@@ -115,8 +121,8 @@ function Messenger(params) {
   // Replying
   function reply(id, to, body) {
     emitter.call(scope, {
-      to: to,
       from: self.name,
+      to: to,
       id: id,
       body: body
     }, to);
@@ -295,8 +301,8 @@ function Messenger(params) {
 
   this.shoot = function() {
     if (shot)
-      throw Error('colback.messenger: this messenger has already been shot.' +
-                  ' \'Twould be a bit overkill to shoot him again, no?');
+      throw Error('colback.messenger: this messenger has already been shot. ' +
+                  '\'Twould be a bit overkill to shoot him again, no?');
 
     // Deleting listeners
     delete listeners;
