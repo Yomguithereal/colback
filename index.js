@@ -9,7 +9,7 @@
 var colback = require('./src/core.js');
 
 // Constants
-var VERSION = '0.0.1';
+var VERSION = '0.1.1';
 
 // Overloading
 Object.defineProperty(colback, 'version', {
